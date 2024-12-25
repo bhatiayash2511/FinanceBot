@@ -7,7 +7,7 @@ This guide walks you through the steps to set up and run the project, including 
 
 First, create a virtual environment and install the necessary dependencies using the `requirements.txt` file.
 
-### Steps:
+### Steps: 
 1. Clone or download the project repository.
 2. Open a terminal and navigate to the project directory.
 3. Create a virtual environment:
