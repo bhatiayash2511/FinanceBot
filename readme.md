@@ -33,31 +33,7 @@ First, create a virtual environment and install the necessary dependencies using
    pip install -r requirements.txt
    ```
 
-## 2. Run `db.py` to Get Vector Database
-
-Once the environment is set up, you need to run the `db.py` script to create and populate the vector database.
-
-### Steps:
-1. In the terminal, run the `db.py` script:
-   ```bash
-   python db.py
-   ```
-
-   This will generate the vector database required for the application to function.
-
-## 3. Run the Application Using Streamlit
-
-Now that the database is set up, you can run the application using Streamlit.
-
-### Steps:
-1. In the terminal, run the following command:
-   ```bash
-   streamlit run app.py
-   ```
-
-2. This will launch the application in your default web browser.
-
-## 4. Set Up Environment Variables
+## 2. Set Up Environment Variables
 
 Create a `.env` file in the root of your project directory and add the following environment variables:
 
@@ -90,6 +66,30 @@ langchain_endpoint = os.getenv("LANGCHAIN_ENDPOINT")
 langchain_project = os.getenv("LANGCHAIN_PROJECT")
 kmp_duplicate_lib_ok = os.getenv("KMP_DUPLICATE_LIB_OK")
 ```
+
+## 3. Run `db.py` to Get Vector Database
+
+Once the environment is set up, you need to run the `db.py` script to create and populate the vector database.
+
+### Steps:
+1. In the terminal, run the `db.py` script:
+   ```bash
+   python db.py
+   ```
+
+   This will generate the vector database required for the application to function.
+
+## 4. Run the Application Using Streamlit
+
+Now that the database is set up, you can run the application using Streamlit.
+
+### Steps:
+1. In the terminal, run the following command:
+   ```bash
+   streamlit run app.py
+   ```
+
+2. This will launch the application in your default web browser.
 
 ## Troubleshooting
 
