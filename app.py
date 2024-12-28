@@ -90,12 +90,11 @@ def get_bot_response(input_text):
     Use RAG with memory for all queries.
     """
     # Retrieve relevant documents
-    # docs = db.as_retriever().get_relevant_documents(input_text)
-    # context = "\n".join([doc.page_content for doc in docs])
+    docs = db.as_retriever().get_relevant_documents(input_text)
+    context = "\n".join([doc.page_content for doc in docs])
 
-    # # Combine context with input
-    # input_with_context = f"Context:\n{context}\nUser Input: {input_text}"
-    input_with_context = input_text
+    # Combine context with input
+    input_with_context = f"Context:\n{context}\nUser Input: {input_text}"
 
     # Generate streaming response
     response = ""
