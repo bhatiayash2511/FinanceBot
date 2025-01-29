@@ -16,7 +16,6 @@ load_dotenv('.env')
 # Streamlit UI setup
 st.set_page_config(layout="wide", page_title="Financial Services Bot")
 st.title("Financial Services Bot")
-# st.write("Owner - Yash, Nishank, Umair, Tirth")
 
 # Left Sidebar for User Details
 with st.sidebar:
@@ -25,7 +24,7 @@ with st.sidebar:
     if st.button("Start New Conversation"):
         st.session_state.chat_history = []
         history = SQLChatMessageHistory(user_id, "sqlite:///chat_history.db")
-        # history.clear()
+        history.clear()
 
 # Initialize session state for chat history
 if "chat_history" not in st.session_state:
@@ -40,6 +39,10 @@ base_url = "http://localhost:11434"
 model = 'llama3.2:3b'
 llm = ChatOllama(base_url=base_url, model=model)
 
+# Cross-verification LLM
+cross_verify_model = 'llama3.2:2b'
+cross_verify_llm = ChatOllama(base_url=base_url, model=cross_verify_model)
+
 # System Prompt Template
 system = SystemMessagePromptTemplate.from_template("""
 You are a financial advisor voice assistant named Alpha 1 to cater Indian Audience. Your job is to provide concise, conversational, and practical financial advice in a tone similar to a friendly phone call. Keep responses brief, clear, and focused, as if you're speaking to someone directly over the phone. Avoid overly detailed explanations or technical jargon unless asked. Prioritize being approachable, easy to understand, and helpful in a natural, conversational tone.
@@ -52,7 +55,6 @@ When responding, If there is a query respond to just query and if user is talkin
 4. **Duration of Investment**: Provide advice that matches the user's investment timeline.  
 
 If the query is not related to financial services, respond politely by stating that your expertise is focused on financial advice and encourage the user to redirect their question to financial topics. For example: 'I specialize in financial advice. If you have any financial questions, feel free to ask!'
-
 
 This is a phone call, and you cannot add more than 70 words per response.
 """)
@@ -84,18 +86,29 @@ qa_chain = RetrievalQA.from_chain_type(
     chain_type="stuff"
 )
 
+# Cross-verification function
+def cross_verify_response(question, response, history):
+    verification_prompt = f"""
+    Question: {question}
+    Response: {response}
+    History: {history}
+    
+    Verify if the response correctly addresses the question based on the history provided. Respond with 'Valid' or 'Invalid' and a brief explanation if invalid.
+    """
+    result = cross_verify_llm.generate(verification_prompt)
+    return result.strip()
+
 # Function to get bot response using RAG with memory
 def get_bot_response(input_text):
     """
     Use RAG with memory for all queries.
     """
     # Retrieve relevant documents
-    # docs = db.as_retriever().get_relevant_documents(input_text)
-    # context = "\n".join([doc.page_content for doc in docs])
+    docs = db.as_retriever().get_relevant_documents(input_text)
+    context = "\n".join([doc.page_content for doc in docs])
 
     # Combine context with input
-    # input_with_context = f"Context:\n{context}\nUser Input: {input_text}"
-    input_with_context = input_text
+    input_with_context = f"Context:\n{context}\nUser Input: {input_text}"
 
     # Generate streaming response
     response = ""
@@ -106,6 +119,11 @@ def get_bot_response(input_text):
         response += chunk
         yield chunk
 
+    # Cross-verify response
+    verification_result = cross_verify_response(input_text, response, st.session_state.chat_history)
+    if "Invalid" in verification_result:
+        st.warning("The generated response may not fully address the query. Please refine your question.")
+
 # Middle Section for Chat Interface
 col1, col2 = st.columns([1, 3])  # Sidebar:Chat Area ratio
 
@@ -113,10 +131,10 @@ with col2:
     st.subheader("Chat with Alpha 1")
     for message in st.session_state.chat_history:
         if message['role'] == 'user':
-            with st.chat_message("user", avatar="🧑‍💼"):
+            with st.chat_message("user", avatar="\U0001F468\U0000200D\U0001F4BC"):
                 st.markdown(message['content'])
         else:
-            with st.chat_message("assistant", avatar="🤖"):
+            with st.chat_message("assistant", avatar="\U0001F916"):
                 st.markdown(message['content'])
 
     # Input from user
@@ -124,11 +142,11 @@ with col2:
         st.session_state.chat_history.append({'role': 'user', 'content': prompt})
 
         # Display user message
-        with st.chat_message("user", avatar="🧑‍💼"):
+        with st.chat_message("user", avatar="\U0001F468\U0000200D\U0001F4BC"):
             st.markdown(prompt)
 
         # Display assistant response with streaming
-        with st.chat_message("assistant", avatar="🤖"):
+        with st.chat_message("assistant", avatar="\U0001F916"):
             response_container = st.empty()
             full_response = ""
 
@@ -138,6 +156,5 @@ with col2:
 
         # Append assistant response to history
         st.session_state.chat_history.append({'role': 'assistant', 'content': full_response})
-        # print(user_id)
+
         history = get_session_history(user_id)
-        # print(history)
